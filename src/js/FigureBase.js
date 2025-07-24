@@ -1,7 +1,7 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 
-class BaseModel {
+class FigureBase {
   constructor(path, scale, rotationY, position, scene) {
     this.path = path;
     this.scale = scale;
@@ -32,4 +32,4 @@ class BaseModel {
 }
 
 
-export default BaseModel;
+export default FigureBase;
