@@ -1,6 +1,6 @@
 // vllt. animationen
 
-import FigureBase from './FigureBase.js';
+import FigureBase from './ModelBase.js';
 
 class FigureAnimation extends FigureBase {
 }

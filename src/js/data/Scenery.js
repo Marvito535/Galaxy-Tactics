@@ -1,13 +1,4 @@
-
-
-// Define an array of figure and scenery objects to load
-const Figures = [
-  // Characters with their model paths, scale, rotation, and position on the scene
-  { path: '../public/assets/figures/Elephant_Sentinel.glb', scale: [7, 7, 7], rotation: 0, position: { x: 20, z: -10 } },
-  { path: '../public/assets/figures/Galactic_Overlord_Thr.glb', scale: [7, 7, 7], rotation: 0, position: { x: 40, z: -10 } },
-  { path: '../public/assets/figures/Dragonfly_Cavalry.glb', scale: [7, 7, 7], rotation: 0, position: { x: 60, z: -10 } },
-  { path: '../public/assets/figures/Sheriff_of_the_Future.glb', scale: [7, 7, 7], rotation: 0, position: { x: 0, z: -20 } },
-
+const Scenery = [
   // Landscape objects with their respective properties
   { path: '../public/assets/scenery objects/Green_Peaks.glb', scale: [20, 20, 20], rotation: Math.PI * 1.75, position: { x: -15, z: -50 } },
   { path: '../public/assets/vegetation/Three_Trees.glb', scale: [15, 15, 15], rotation: Math.PI * 1.9, position: { x: -50, z: -50 } },
@@ -63,4 +54,4 @@ const Figures = [
   { path: '../public/assets/vegetation/Majestic_Redwood.glb', scale: [10, 15, 10], rotation: Math.PI * 2, position: { x: 10, z: -40 } }
 ];
 
-export default Figures;
+export default Scenery;
