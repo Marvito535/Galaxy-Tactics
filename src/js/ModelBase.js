@@ -10,8 +10,10 @@ class ModelBase {
     this.scene = scene;
   }
 
-  loadModel() {
+  loadModel(onLoadCallback) {
     const loader = new GLTFLoader();
+
+    
     loader.load(
       this.path,
       (gltf) => {
@@ -23,6 +25,8 @@ class ModelBase {
         const minY = box.min.y;
         model.position.set(this.position.x, -minY, this.position.z);
 
+        if (onLoadCallback) onLoadCallback(model);
+        
         this.scene.add(model);
       },
       undefined,

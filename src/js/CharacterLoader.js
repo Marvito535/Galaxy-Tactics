@@ -1,5 +1,10 @@
 import ModelBase from './ModelBase.js';
 
+function setUserDataIsCharacter(object) {
+  object.userData.isCharacter = true;
+  object.children.forEach(child => setUserDataIsCharacter(child));
+}
+
 class CharacterLoader {
   constructor(scene, gridConfig) {
     this.scene = scene;
@@ -19,7 +24,10 @@ class CharacterLoader {
   loadFigure({ path, scale, rotation, tile }) {
     const position = this.tileToWorldPosition(tile);
     const figure = new ModelBase(path, scale, rotation, position, this.scene);
-    figure.loadModel();
+
+    figure.loadModel((gltfModel) => {
+      setUserDataIsCharacter(gltfModel);
+    });
   }
 
   loadFigures(figures) {

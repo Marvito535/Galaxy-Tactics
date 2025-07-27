@@ -1,5 +1,5 @@
 import * as THREE from 'three';                      // Import the entire THREE.js library as THREE
-import GameCamera from './js/Camera.js';             // Import custom GameCamera class from local module
+import GameCamera from './js/GameCamera.js';             // Import custom GameCamera class from local module
 import CameraControls from './js/CameraControls.js'; // Import custom CameraControls class from local module
 import Characters  from './js/data/Characters.js';          // Import custom Figures class to load 3D models datas
 import Scenery from './js/data/Scenery.js'; 
@@ -7,11 +7,18 @@ import CharacterLoader from './js/CharacterLoader.js';     // Import custom Figu
 import setupLights  from './js/Lights.js';           // Import custom lights function
 import loadTexture  from './js/TextureManager.js'; 
 import SceneryLoader from './js/SceneryLoader.js';
+import SceneGridOverlay from './js/SceneGridOverlay.js';
 
 // Scene and Renderer setup
 const scene = new THREE.Scene();                      // Create a new 3D scene
 const bgTexture = new THREE.TextureLoader().load('../public/assets/background/Galaxy.png');  // Load background texture image
 scene.background = bgTexture;                         // Set the scene's background to the loaded texture
+
+// ========== Interaktion ==========
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let selectedFigure = null;
+ 
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });  // Create WebGL renderer with antialiasing enabled
 renderer.setPixelRatio(window.devicePixelRatio);      // Set pixel ratio for retina or high-DPI screens
@@ -28,7 +35,7 @@ setupLights(scene);
 
 // Ground plane with texture
 const planeGeometry = new THREE.PlaneGeometry(160, 120);  // Create a rectangular plane geometry 160x120 units
-const groundTexture = loadTexture();                      // Load ground texture image
+const groundTexture = loadTexture();                      // Load ground texture image from TextureManager.js
 const planeMaterial = new THREE.MeshStandardMaterial({    // Create a standard material using the ground texture
   map: groundTexture,                                     // Assign the loaded texture as the material's diffuse map
  // side: THREE.DoubleSide                                  // Render the plane material on both sides of the plane
@@ -61,39 +68,65 @@ const loader = new CharacterLoader(scene, gridConfig);
 loader.loadFigures(Characters);
 SceneryLoader(Scenery,scene);
 
-//prepare geometry for lines
-const linesGeometry = new THREE.BufferGeometry();
-const vertices = [];
+const geometryLoader = new SceneGridOverlay(gridHeight, gridWidth, tileSize, scene, offsetX, offsetZ);
+geometryLoader.createGridGeometry();  
+geometryLoader.renderGrid(); 
 
 
-// Horizontal lines
-for (let y = 0; y <= gridHeight; y++) {
-  vertices.push(0, 0, y * tileSize);          // starting point (x=0)
-  vertices.push(gridWidth * tileSize, 0, y * tileSize); // end point (x=gridWidth * tileSize)
+
+// Raycasting-Funktion
+function getIntersectedObject(event, targets) {
+  const rect = renderer.domElement.getBoundingClientRect();
+
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(targets, true);
+
+ if (intersects.length > 0) {
+  return intersects[0];
+} else {
+  return null;
+}
 }
 
-// Vertical lines
-for (let x = 0; x <= gridWidth; x++) {
-  vertices.push(x * tileSize, 0, 0);          // starting point (z=0)
-  vertices.push(x * tileSize, 0, gridHeight * tileSize); // end point (z=gridHeight * tileSize)
-}
+window.addEventListener('mousedown', (event) => {
+  const intersect = getIntersectedObject(event, scene.children);
 
+  if (selectedFigure === null) {
+    // Keine Figur ausgewählt? Dann prüfen, ob ein Charakter angeklickt wurde
+    if (intersect) {
+      const object = intersect.object;
+      const isCharacter = object.userData.isCharacter || object.parent?.userData.isCharacter;
 
-const verticesFloat32 = new Float32Array(vertices);
-linesGeometry.setAttribute('position', new THREE.BufferAttribute(verticesFloat32, 3));
+      if (isCharacter) {
+        const character = object.userData.isCharacter ? object : object.parent;
 
-// Material für Linien (schwarz, leicht transparent)
-const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
+        // Originalhöhe speichern, falls noch nicht geschehen
+        if (character.userData.originalY === undefined) {
+          character.userData.originalY = character.position.y;
+        }
 
-// Linien-Objekt erstellen
-const gridLines = new THREE.LineSegments(linesGeometry, lineMaterial);
+        // Figur anheben
+        character.position.y = character.userData.originalY + 1;
 
-// Füge das Raster zur Szene hinzu
-scene.add(gridLines);
+        // Figur merken als ausgewählt
+        selectedFigure = character;
+        console.log('Figur angehoben:', character.name || character.id);
 
-// Verschiebe Raster so, dass der Ursprung des Rasters nicht bei (0,0,0) liegt,
-// sondern z.B. bei (-80, 0, -60), also mittig bezogen auf die Rastergröße und tileSize
-gridLines.position.set(offsetX, 0.1, offsetZ);
+        return; // fertig
+      }
+    }
+  } else {
+    // Eine Figur ist angehoben – jetzt beim Klick wieder absenken (egal wohin geklickt)
+    selectedFigure.position.y = selectedFigure.userData.originalY;
+    console.log('Figur wieder abgesenkt:', selectedFigure.name || selectedFigure.id);
+
+    selectedFigure = null;
+  }
+});
+
 
 
 // Animation loop to render the scene continuously
@@ -103,6 +136,7 @@ function animate() {
   renderer.render(scene, camera);  // Render the current scene from the perspective of the camera
 }
 animate();                         // Start the animation loop
+
 
 // Handle browser window resizing
 window.addEventListener('resize', () => {
