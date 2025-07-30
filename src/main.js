@@ -8,16 +8,12 @@ import setupLights  from './js/Lights.js';           // Import custom lights fun
 import loadTexture  from './js/TextureManager.js'; 
 import SceneryLoader from './js/SceneryLoader.js';
 import SceneGridOverlay from './js/SceneGridOverlay.js';
+import RaiseCharacter from './js/InteractWithCharacters.js';
 
 // Scene and Renderer setup
 const scene = new THREE.Scene();                      // Create a new 3D scene
 const bgTexture = new THREE.TextureLoader().load('../public/assets/background/Galaxy.png');  // Load background texture image
 scene.background = bgTexture;                         // Set the scene's background to the loaded texture
-
-// ========== Interaktion ==========
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-let selectedFigure = null;
  
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });  // Create WebGL renderer with antialiasing enabled
@@ -72,62 +68,7 @@ const geometryLoader = new SceneGridOverlay(gridHeight, gridWidth, tileSize, sce
 geometryLoader.createGridGeometry();  
 geometryLoader.renderGrid(); 
 
-
-
-// Raycasting-Funktion
-function getIntersectedObject(event, targets) {
-  const rect = renderer.domElement.getBoundingClientRect();
-
-  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(targets, true);
-
- if (intersects.length > 0) {
-  return intersects[0];
-} else {
-  return null;
-}
-}
-
-window.addEventListener('mousedown', (event) => {
-  const intersect = getIntersectedObject(event, scene.children);
-
-  if (selectedFigure === null) {
-    // Keine Figur ausgewählt? Dann prüfen, ob ein Charakter angeklickt wurde
-    if (intersect) {
-      const object = intersect.object;
-      const isCharacter = object.userData.isCharacter || object.parent?.userData.isCharacter;
-
-      if (isCharacter) {
-        const character = object.userData.isCharacter ? object : object.parent;
-
-        // Originalhöhe speichern, falls noch nicht geschehen
-        if (character.userData.originalY === undefined) {
-          character.userData.originalY = character.position.y;
-        }
-
-        // Figur anheben
-        character.position.y = character.userData.originalY + 1;
-
-        // Figur merken als ausgewählt
-        selectedFigure = character;
-        console.log('Figur angehoben:', character.name || character.id);
-
-        return; // fertig
-      }
-    }
-  } else {
-    // Eine Figur ist angehoben – jetzt beim Klick wieder absenken (egal wohin geklickt)
-    selectedFigure.position.y = selectedFigure.userData.originalY;
-    console.log('Figur wieder abgesenkt:', selectedFigure.name || selectedFigure.id);
-
-    selectedFigure = null;
-  }
-});
-
-
+new RaiseCharacter (renderer, camera, scene);
 
 // Animation loop to render the scene continuously
 function animate() {
