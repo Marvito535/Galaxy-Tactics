@@ -1,13 +1,17 @@
 import * as THREE from 'three';                      // Import the entire THREE.js library as THREE
 import GameCamera from './js/GameCamera.js';             // Import custom GameCamera class from local module
 import CameraControls from './js/CameraControls.js'; // Import custom CameraControls class from local module
-import Characters  from './js/data/Characters.js';          // Import custom Figures class to load 3D models datas
+//import Characters  from './js/data/Characters.js';          // Import custom Figures class to load 3D models datas
 import Scenery from './js/data/Scenery.js'; 
-import CharacterLoader from './js/CharacterLoader.js';     // Import custom Figures class to load 3D models
 import setupLights  from './js/Lights.js';           // Import custom lights function
 import loadTexture  from './js/TextureManager.js'; 
 import SceneryLoader from './js/SceneryLoader.js';
 import SceneGridOverlay from './js/SceneGridOverlay.js';
+import ElephantSentinel from './js/ElephantSentinel.js';
+import GalacticOverlord from './js/GalacticOverlord.js';
+import DragonflyCavalry from './js/DragonflyCavalry.js';
+import SheriffOfTheFuture from './js/SheriffOfTheFuture.js';
+
 
 // Scene and Renderer setup
 const scene = new THREE.Scene();                      // Create a new 3D scene
@@ -25,10 +29,6 @@ const cameraObj = new GameCamera(window.innerWidth, window.innerHeight);  // Ins
 const camera = cameraObj.getCamera();                   // Retrieve the internal camera object from GameCamera instance
 const controls = new CameraControls(camera, renderer.domElement);  // Create camera controls attached to the renderer's canvas
 
-const gridWidth = 5;
-const gridHeight = 5;
-const tileSize = 15;
-
 // load Lighting setup
 setupLights(scene);
 
@@ -44,12 +44,22 @@ const plane = new THREE.Mesh(planeGeometry, planeMaterial);  // Create a mesh co
 plane.rotation.x = -Math.PI / 2;                            // Rotate the plane to lie flat horizontally (like a floor)
 scene.add(plane);                                           // Add the plane mesh to the scene
 
-const gridOverlay = new SceneGridOverlay(scene, gridWidth, gridHeight, tileSize); // erzeugt automatisch das Grid
-const gridConfig = gridOverlay.getGridConfig();  // gibts an andere weiter (z. B. CharacterLoader)
-
+const gridOverlay = new SceneGridOverlay(scene, 5, 5, 15);
+const gridMap = gridOverlay.getGridMap(); // z. B. gridMap["B3"]
+const configPart = gridOverlay.getGridConfig();
+const gridConfig = {
+  gridWidth: configPart.gridWidth,
+  gridHeight: configPart.gridHeight,
+  tileSize: configPart.tileSize,
+  offsetX: configPart.offsetX,
+  offsetZ: configPart.offsetZ,
+  gridMap: gridMap
+};
 // Load all models into the scene
-const loader = new CharacterLoader(scene, gridConfig);
-loader.loadFigures(Characters);
+new ElephantSentinel(scene, gridConfig);
+new GalacticOverlord(scene, gridConfig);
+new DragonflyCavalry(scene, gridConfig);
+new SheriffOfTheFuture(scene, gridConfig);
 SceneryLoader(Scenery,scene);
 
 // Animation loop to render the scene continuously
