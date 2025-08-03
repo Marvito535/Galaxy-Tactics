@@ -1,16 +1,30 @@
-import * as THREE from 'three';                      // Import the entire THREE.js library as THREE
+import * as THREE from 'three';
 
-class GeometryLines {
-  constructor(gridHeight, gridWidth, tileSize, scene, offsetX, offsetZ) {
-    this.gridHeight = gridHeight;
-    this.gridWidth = gridWidth;
-    this.tileSize = tileSize;
+class SceneGridOverlay {
+  constructor(scene, gridWidth, gridHeight, tileSize ) {
     this.scene = scene;
-    this.offsetX = offsetX;
-    this.offsetZ = offsetZ;
+    this.gridWidth = gridWidth;
+    this.gridHeight = gridHeight;
+    this.tileSize = tileSize;
+
+    this.offsetX = - (this.gridWidth * this.tileSize) / 2;
+    this.offsetZ = - (this.gridHeight * this.tileSize) / 2;
+
     this.linesGeometry = null;
+
+    this.createGridGeometry();
+    this.renderGrid();
   }
 
+  getGridConfig() {
+    return {
+      tileSize: this.tileSize,
+      gridWidth: this.gridWidth,
+      gridHeight: this.gridHeight,
+      offsetX: this.offsetX,
+      offsetZ: this.offsetZ
+    };
+  }
 
   createGridGeometry() {
     const vertices = [];
@@ -32,10 +46,9 @@ class GeometryLines {
     this.linesGeometry.setAttribute('position', new THREE.BufferAttribute(verticesFloat32, 3));
   }
 
-
-renderGrid() {
+  renderGrid() {
     if (!this.linesGeometry) {
-      console.error("linesGeometry is not initialized. Call geometryPosition() first.");
+      console.error("linesGeometry is not initialized. Call createGridGeometry() first.");
       return;
     }
 
@@ -51,4 +64,4 @@ renderGrid() {
   }
 }
 
-export default GeometryLines;
+export default SceneGridOverlay;

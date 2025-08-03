@@ -1,7 +1,7 @@
 import * as THREE from 'three';  
 
 // Class that handles selecting and raising a character when clicking on it
-class RaiseCharacter {
+export class RaiseCharacter {
     constructor(renderer, camera, scene) {
         // Store references to the renderer, camera, and scene
         this.renderer = renderer;
@@ -20,7 +20,7 @@ class RaiseCharacter {
 
         // Bind the onMouseDown method to the class context (`this`)
         this.onMouseDown = this.onMouseDown.bind(this);
-         this.onPointerMove = this.onPointerMove.bind(this);
+        this.onPointerMove = this.onPointerMove.bind(this);
 
         // Add an event listener for mouse/pointer down events on the window
         window.addEventListener('pointerdown', this.onMouseDown);
@@ -138,15 +138,20 @@ resetHighlight(character) {
                     character.position.y = character.userData.originalY + 1;
 
                     // Mark this figure as currently selected
+                   // Verzögert auswählen, damit MoveCharacter.onMouseDown() noch nicht darauf reagiert
+
+                    setTimeout(() => {
+                    character.position.y = character.userData.originalY + 1;
                     this.selectedFigure = character;
                     console.log('Raised character:', character.name || character.id);
+                     }, 0);
                     return;
                 }
             }
         } else {
             // If a figure is already selected, lower it back to its original height
             this.selectedFigure.position.y = this.selectedFigure.userData.originalY;
-            console.log('Lowered character:', this.selectedFigure.name || this.selectedFigure.id);
+            console.log('Moved character forward and lowered:', this.selectedFigure.name || this.selectedFigure.id);
 
             // Clear the selected figure
             this.selectedFigure = null;
@@ -154,4 +159,5 @@ resetHighlight(character) {
     }
 }
 
-export default RaiseCharacter; 
+
+

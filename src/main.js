@@ -8,7 +8,6 @@ import setupLights  from './js/Lights.js';           // Import custom lights fun
 import loadTexture  from './js/TextureManager.js'; 
 import SceneryLoader from './js/SceneryLoader.js';
 import SceneGridOverlay from './js/SceneGridOverlay.js';
-import RaiseCharacter from './js/InteractWithCharacters.js';
 
 // Scene and Renderer setup
 const scene = new THREE.Scene();                      // Create a new 3D scene
@@ -26,6 +25,10 @@ const cameraObj = new GameCamera(window.innerWidth, window.innerHeight);  // Ins
 const camera = cameraObj.getCamera();                   // Retrieve the internal camera object from GameCamera instance
 const controls = new CameraControls(camera, renderer.domElement);  // Create camera controls attached to the renderer's canvas
 
+const gridWidth = 5;
+const gridHeight = 5;
+const tileSize = 15;
+
 // load Lighting setup
 setupLights(scene);
 
@@ -41,34 +44,13 @@ const plane = new THREE.Mesh(planeGeometry, planeMaterial);  // Create a mesh co
 plane.rotation.x = -Math.PI / 2;                            // Rotate the plane to lie flat horizontally (like a floor)
 scene.add(plane);                                           // Add the plane mesh to the scene
 
-
-// Spielfeld-Konfiguration
-const gridWidth = 5;
-const gridHeight = 5;
-const tileSize = 15;
-
-const offsetX = - (gridWidth * tileSize) / 2;
-const offsetZ = - (gridHeight * tileSize) / 2;
-
-const gridConfig = {
-  tileSize,
-  gridWidth,
-  gridHeight,
-  offsetX,
-  offsetZ
-};
-
+const gridOverlay = new SceneGridOverlay(scene, gridWidth, gridHeight, tileSize); // erzeugt automatisch das Grid
+const gridConfig = gridOverlay.getGridConfig();  // gibts an andere weiter (z. B. CharacterLoader)
 
 // Load all models into the scene
 const loader = new CharacterLoader(scene, gridConfig);
 loader.loadFigures(Characters);
 SceneryLoader(Scenery,scene);
-
-const geometryLoader = new SceneGridOverlay(gridHeight, gridWidth, tileSize, scene, offsetX, offsetZ);
-geometryLoader.createGridGeometry();  
-geometryLoader.renderGrid(); 
-
-new RaiseCharacter (renderer, camera, scene);
 
 // Animation loop to render the scene continuously
 function animate() {
