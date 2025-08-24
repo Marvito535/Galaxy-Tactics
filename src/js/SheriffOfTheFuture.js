@@ -24,8 +24,15 @@ class SheriffOfTheFuture {
     );
 
     model.loadModel((gltfModel) => {
-      setUserDataIsCharacter(gltfModel);
-    });
+  setUserDataIsCharacter(gltfModel);
+  gltfModel.name = "SheriffOfTheFuture";
+
+  // kleine Verzögerung, damit scene.add schon passiert ist
+  setTimeout(() => {
+    console.log("Found in scene:", scene.getObjectByName("SheriffOfTheFuture"));
+  }, 100);
+});
+
   }
 }
 

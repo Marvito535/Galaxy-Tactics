@@ -10,6 +10,7 @@ import ElephantSentinel from './js/ElephantSentinel.js';
 import GalacticOverlord from './js/GalacticOverlord.js';
 import DragonflyCavalry from './js/DragonflyCavalry.js';
 import SheriffOfTheFuture from './js/SheriffOfTheFuture.js';
+import InteractWithSheriff from './js/InteractWithSheriff.js';
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -19,7 +20,6 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
 const scene = new THREE.Scene();                      // Create a new 3D scene
 const bgTexture = new THREE.TextureLoader().load('../public/assets/background/Galaxy.png');  // Load background texture image
 scene.background = bgTexture;                         // Set the scene's background to the loaded texture
- 
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });  // Create WebGL renderer with antialiasing enabled
 renderer.setPixelRatio(window.devicePixelRatio);      // Set pixel ratio for retina or high-DPI screens
@@ -58,7 +58,6 @@ const gridConfig = {                           // build a new object combining g
   gridMap: gridMap                             // reference to all grid cells (map of tile IDs to tile objects)
 };
 
-
 // Load all models into the scene
 new ElephantSentinel(scene, gridConfig);
 new GalacticOverlord(scene, gridConfig);
@@ -66,40 +65,39 @@ new DragonflyCavalry(scene, gridConfig);
 new SheriffOfTheFuture(scene, gridConfig);
 SceneryLoader(Scenery,scene);
 
+const composer = new EffectComposer(renderer); // create an EffectComposer that will manage post-processing effects using the renderer
+const renderPass = new RenderPass(scene, camera); // create a basic render pass for the scene and camera (draws the scene normally)
+composer.addPass(renderPass); // add the render pass to the composer so it will render the scene first
 
-const composer = new EffectComposer(renderer);
-const renderPass = new RenderPass(scene, camera);
-composer.addPass(renderPass);
-
-
-const outlinePass = new OutlinePass(
-  new THREE.Vector2(window.innerWidth, window.innerHeight),
-  scene,
-  camera
+const outlinePass = new OutlinePass(                // create an OutlinePass to add an outline effect to objects
+  new THREE.Vector2(window.innerWidth, window.innerHeight), // set the size of the outline pass to match the window
+  scene,                                              // pass the scene to the outline effect
+  camera                                              // pass the camera to the outline effect
 );
-outlinePass.edgeStrength = 3.0;
-outlinePass.edgeGlow = 0.5;
-outlinePass.edgeThickness = 1.0;
-outlinePass.visibleEdgeColor.set('#ffffff');
-outlinePass.hiddenEdgeColor.set('#000000');
-composer.addPass(outlinePass);
 
-//const sheriffInteraction = new InteractWithSheriff(scene, outlinePass, camera);
+outlinePass.edgeStrength = 3.0;          // control how strong the outline appears (thicker or more visible)
+outlinePass.edgeGlow = 0.5;              // control the glow intensity around the outline
+outlinePass.edgeThickness = 1.0;         // control the thickness of the outline lines
+outlinePass.visibleEdgeColor.set('#ffffff'); // set the color of the visible edges (white)
+outlinePass.hiddenEdgeColor.set('#000000');  // set the color of edges hidden behind objects (black)
 
+composer.addPass(outlinePass); // add the outline pass to the composer so it will be applied after the scene is rendered
+
+// Initialize sheriff interaction
+const sheriffInteraction = new InteractWithSheriff(scene, outlinePass, camera, composer);
 
 // Animation loop to render the scene continuously
 function animate() {
   requestAnimationFrame(animate);  // Schedule the animate function to be called before the next repaint
   controls.update();                // Update the camera controls (handle user input, inertia, etc.)
-  //sheriffInteraction.update();      // nur Sheriff-Logik
-  //  renderer.render(scene, camera);  // Render the current scene from the perspective of the camera
+  sheriffInteraction.update();      // nur Sheriff-Logik
   composer.render();           // Rendert alles inkl. Outline
 }
 animate();                         // Start the animation loop
-
 
 // Handle browser window resizing
 window.addEventListener('resize', () => {
   cameraObj.resize(window.innerWidth, window.innerHeight);  // Update camera projection on resize
   renderer.setSize(window.innerWidth, window.innerHeight);  // Resize the renderer output to match new window size
+  composer.setSize(window.innerWidth, window.innerHeight);  // Also resize the composer
 });
