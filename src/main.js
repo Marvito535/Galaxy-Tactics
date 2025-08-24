@@ -1,7 +1,6 @@
 import * as THREE from 'three';                      // Import the entire THREE.js library as THREE
 import GameCamera from './js/GameCamera.js';             // Import custom GameCamera class from local module
 import CameraControls from './js/CameraControls.js'; // Import custom CameraControls class from local module
-//import Characters  from './js/data/Characters.js';          // Import custom Figures class to load 3D models datas
 import Scenery from './js/data/Scenery.js'; 
 import setupLights  from './js/Lights.js';           // Import custom lights function
 import loadTexture  from './js/TextureManager.js'; 
@@ -12,6 +11,9 @@ import GalacticOverlord from './js/GalacticOverlord.js';
 import DragonflyCavalry from './js/DragonflyCavalry.js';
 import SheriffOfTheFuture from './js/SheriffOfTheFuture.js';
 
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
 
 // Scene and Renderer setup
 const scene = new THREE.Scene();                      // Create a new 3D scene
@@ -44,17 +46,19 @@ const plane = new THREE.Mesh(planeGeometry, planeMaterial);  // Create a mesh co
 plane.rotation.x = -Math.PI / 2;                            // Rotate the plane to lie flat horizontally (like a floor)
 scene.add(plane);                                           // Add the plane mesh to the scene
 
-const gridOverlay = new SceneGridOverlay(scene, 5, 5, 15);
-const gridMap = gridOverlay.getGridMap(); // z. B. gridMap["B3"]
-const configPart = gridOverlay.getGridConfig();
-const gridConfig = {
-  gridWidth: configPart.gridWidth,
-  gridHeight: configPart.gridHeight,
-  tileSize: configPart.tileSize,
-  offsetX: configPart.offsetX,
-  offsetZ: configPart.offsetZ,
-  gridMap: gridMap
+const gridOverlay = new SceneGridOverlay(scene, 5, 5, 15); // create a new grid overlay in the scene with width=5, height=5, tileSize=15
+const gridMap = gridOverlay.getGridMap(); // retrieve the map of grid cells (e.g. gridMap["B3"] gives you a specific tile)
+const configPart = gridOverlay.getGridConfig(); // get the configuration details of the grid (width, height, tile size, offsets)
+const gridConfig = {                           // build a new object combining grid settings and the grid map
+  gridWidth: configPart.gridWidth,             // number of tiles along the x-axis
+  gridHeight: configPart.gridHeight,           // number of tiles along the z-axis
+  tileSize: configPart.tileSize,               // size of each individual tile
+  offsetX: configPart.offsetX,                 // starting position of the grid on the x-axis
+  offsetZ: configPart.offsetZ,                 // starting position of the grid on the z-axis
+  gridMap: gridMap                             // reference to all grid cells (map of tile IDs to tile objects)
 };
+
+
 // Load all models into the scene
 new ElephantSentinel(scene, gridConfig);
 new GalacticOverlord(scene, gridConfig);
@@ -62,11 +66,34 @@ new DragonflyCavalry(scene, gridConfig);
 new SheriffOfTheFuture(scene, gridConfig);
 SceneryLoader(Scenery,scene);
 
+
+const composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
+
+
+const outlinePass = new OutlinePass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  scene,
+  camera
+);
+outlinePass.edgeStrength = 3.0;
+outlinePass.edgeGlow = 0.5;
+outlinePass.edgeThickness = 1.0;
+outlinePass.visibleEdgeColor.set('#ffffff');
+outlinePass.hiddenEdgeColor.set('#000000');
+composer.addPass(outlinePass);
+
+//const sheriffInteraction = new InteractWithSheriff(scene, outlinePass, camera);
+
+
 // Animation loop to render the scene continuously
 function animate() {
   requestAnimationFrame(animate);  // Schedule the animate function to be called before the next repaint
   controls.update();                // Update the camera controls (handle user input, inertia, etc.)
-  renderer.render(scene, camera);  // Render the current scene from the perspective of the camera
+  //sheriffInteraction.update();      // nur Sheriff-Logik
+  //  renderer.render(scene, camera);  // Render the current scene from the perspective of the camera
+  composer.render();           // Rendert alles inkl. Outline
 }
 animate();                         // Start the animation loop
 

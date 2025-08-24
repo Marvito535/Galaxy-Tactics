@@ -8,7 +8,7 @@ function setUserDataIsCharacter(object) {
 class GalacticOverlord {
   constructor(scene, gridConfig) {
     const gridMap = gridConfig.gridMap || {}; // Sicherheits-Check, falls Map fehlt
-    const position = gridMap["A1"]; // Position auf Feld A1 holen
+    const position = gridMap["E5"]; // Position auf Feld A1 holen
 
     if (!position) {
       console.error("GridMap enthält keine Position für A1.");

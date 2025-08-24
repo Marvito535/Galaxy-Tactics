@@ -8,7 +8,7 @@ function setUserDataIsCharacter(object) {
 class SheriffOfTheFuture {
   constructor(scene, gridConfig) {
     const gridMap = gridConfig.gridMap || {}; // Sicherheits-Check, falls Map fehlt
-    const position = gridMap["D1"]; // Position auf Feld A1 holen
+    const position = gridMap["E2"]; // Position auf Feld A1 holen
 
     if (!position) {
       console.error("GridMap enthält keine Position für C1.");
