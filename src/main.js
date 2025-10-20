@@ -84,13 +84,13 @@ outlinePass.hiddenEdgeColor.set('#000000');  // set the color of edges hidden be
 composer.addPass(outlinePass); // add the outline pass to the composer so it will be applied after the scene is rendered
 
 // Initialize sheriff interaction
-const sheriffInteraction = new InteractWithSheriff(scene, outlinePass, camera, composer);
+//const sheriffInteraction = new InteractWithSheriff(scene, outlinePass, camera, composer);
 
 // Animation loop to render the scene continuously
 function animate() {
   requestAnimationFrame(animate);  // Schedule the animate function to be called before the next repaint
   controls.update();                // Update the camera controls (handle user input, inertia, etc.)
-  sheriffInteraction.update();      // nur Sheriff-Logik
+  //sheriffInteraction.update();      // nur Sheriff-Logik
   composer.render();           // Rendert alles inkl. Outline
 }
 animate();                         // Start the animation loop
